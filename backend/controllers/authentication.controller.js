@@ -126,3 +126,30 @@ export const logout = (req, res) => {
     return response(res, 500, "Internal server error");
   }
 };
+
+//User Authentication
+export const checkAuthenticated = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    if (!userId) {
+      return response(
+        res,
+        404,
+        "unauthorization please login before acccess our app",
+      );
+    }
+    const user = await User.findById(userId);
+    if (!user) {
+      return response(res, 404, "User not found");
+    }
+    return response(
+      res,
+      200,
+      "user retrived and allow to use connect pro",
+      user,
+    );
+  } catch (error) {
+    console.error(error);
+    return response(res, 500, "Internal server error");
+  }
+};
