@@ -115,3 +115,14 @@ export const updateProfile = async (req, res) => {
     return response(res, 500, "Internal server error");
   }
 };
+
+//logout
+export const logout = (req, res) => {
+  try {
+    res.cookie("auth_token", "", { expires: new Date(0) });
+    return response(res, 200, "user logout successfully");
+  } catch (error) {
+    console.error(error);
+    return response(res, 500, "Internal server error");
+  }
+};
