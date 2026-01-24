@@ -6,6 +6,8 @@ import { generateToken } from "../utils/generateToken.utils.js";
 import { otpGenerate } from "../utils/otpGenerator.utils.js";
 import { response } from "../utils/responseHandler.utils.js";
 
+import Conversation from "../models/conversation.model.js";
+
 // send OTP
 export const sendOTP = async (req, res) => {
   const { phoneNumber, countryCode, email } = req.body;
@@ -153,3 +155,32 @@ export const checkAuthenticated = async (req, res) => {
     return response(res, 500, "Internal server error");
   }
 };
+
+
+//Get All user expect the logged in user
+export const getAllUsers=async(req,res)=>{
+  const loggedInUser=req.user.userId;
+  try {
+    const users=await User.find({_id:{$ne:loggedInUser}}).select("username profilePicture lastSeen isOnline about phoneNumber countryCode").lean();
+
+    const usersWithConversation= await Promise.all(
+      users.map(async (user)=>{
+        const conversation= await Conversation.findOne({
+          participant:{$all:[loggedInUser,user?._id]}
+        }).populate({
+        path:"lastMessage",
+        select:"content createdAt sender receiver"
+      }).lean();
+      return{
+        ...user,
+        convesation:conversation|null,
+
+      }
+      })
+    )
+    return response(res,200,"User retrived successfully",usersWithConversation)
+  } catch (error) {
+     console.error(error);
+    return response(res, 500, "Internal server error");
+  }
+}
